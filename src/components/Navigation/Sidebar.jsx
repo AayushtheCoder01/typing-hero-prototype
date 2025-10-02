@@ -122,7 +122,7 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
           />
           <div>
             <h1 className="text-xl font-bold" style={{ color: theme.colors.text }}>
-              TypeMaster
+              Typing Hero
             </h1>
             {isPremium && (
               <div className="flex items-center space-x-1 text-xs" style={{ color: theme.colors.primary }}>
