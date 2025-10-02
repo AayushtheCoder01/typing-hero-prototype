@@ -12,6 +12,7 @@ import AuthenticatedLayout from './components/Layout/AuthenticatedLayout';
 import LandingPage from './pages/LandingPage';
 import PerformanceDashboard from './components/Dashboard/PerformanceDashboard';
 import PracticeMode from './components/TypingModes/PracticeMode';
+import DeveloperTest from './components/TypingModes/DeveloperTest';
 import TimedTest from './components/TypingModes/TimedTest';
 import CustomText from './components/TypingModes/CustomText';
 import TestAnalytics from './components/Analytics/TestAnalytics';
@@ -32,7 +33,7 @@ const AppRoutes = () => {
 
   useEffect(() => {
     const path = location.pathname.split('/')[1] || 'dashboard';
-    const validViews = ['dashboard', 'practice', 'timed', 'custom', 'analytics', 'settings'];
+    const validViews = ['dashboard', 'practice', 'developer', 'timed', 'custom', 'analytics', 'settings'];
     if (validViews.includes(path) && path !== activeView) {
       setActiveView(path);
     } else if (!validViews.includes(path) && activeView !== 'dashboard') {
@@ -84,6 +85,15 @@ const AppRoutes = () => {
             <PracticeMode 
               onShowAnalytics={handleShowAnalytics} 
               onShowDetailedAnalytics={handleShowDetailedAnalytics} 
+            />
+          ),
+        },
+        {
+          path: '/developer',
+          element: (
+            <DeveloperTest
+              onShowAnalytics={handleShowAnalytics}
+              onShowDetailedAnalytics={handleShowDetailedAnalytics}
             />
           ),
         },

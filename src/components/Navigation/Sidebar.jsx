@@ -11,7 +11,8 @@ import {
   FileText,
   LogOut,
   Clock,
-  User
+  User,
+  Code2
 } from 'lucide-react';
 
 const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
@@ -27,6 +28,7 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, description: 'Overview & stats' },
     { id: 'practice', label: 'Practice', icon: Target, description: 'Free typing practice' },
+    { id: 'developer', label: 'Developer Test', icon: Code2, description: 'Code snippet drills' },
     { id: 'timed', label: 'Timed Test', icon: Clock, description: '1, 3, 5 minute tests', premium: true },
     { id: 'custom', label: 'Custom Text', icon: FileText, description: 'Import your own text', premium: true },
   ];
