@@ -52,32 +52,44 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
 
     return (
       <motion.button
+        layout
         onClick={handleClick}
-        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
-          isActive ? 'ring-2' : ''
-        } hover:opacity-80`}
+        className="relative w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors duration-200 hover:opacity-90"
         style={{
-          backgroundColor: isActive ? `${theme.colors.primary}20` : 'transparent',
           color: isActive ? theme.colors.primary : theme.colors.textSecondary,
-          ringColor: isActive ? theme.colors.primary : 'transparent',
           marginBottom: '0.5rem',
+          pointerEvents: isLocked ? 'none' : 'auto',
+          opacity: isLocked ? 0.6 : 1,
         }}
-        whileHover={{ scale: 1.02, x: 4 }}
+        whileHover={{ x: 6 }}
         whileTap={{ scale: 0.98 }}
       >
-        <item.icon size={20} />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <span className="font-medium">{item.label}</span>
-            {item.premium && (
-              <Crown size={12} className="text-yellow-500" />
+        {isActive && (
+          <motion.span
+            layoutId="sidebar-active-indicator"
+            className="absolute inset-0 rounded-xl"
+            style={{ backgroundColor: `${theme.colors.primary}1f` }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+          />
+        )}
+
+        <div className="relative flex items-center space-x-3 w-full">
+          <item.icon size={20} />
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <span className="font-medium" style={{ color: isActive ? theme.colors.text : theme.colors.text }}>
+                {item.label}
+              </span>
+              {item.premium && (
+                <Crown size={12} className="text-yellow-500" />
+              )}
+            </div>
+            {item.description && !isBottom && (
+              <div className="text-xs opacity-75 truncate" style={{ color: theme.colors.textSecondary }}>
+                {item.description}
+              </div>
             )}
           </div>
-          {item.description && !isBottom && (
-            <div className="text-xs opacity-75 truncate">
-              {item.description}
-            </div>
-          )}
         </div>
       </motion.button>
     );
@@ -85,16 +97,17 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
 
   return (
     <motion.div 
-      className="flex flex-col h-screen p-4 w-64 border-r transition-all duration-300 justify-between"
+      layout
+      className="flex flex-col h-screen p-4 w-64 border-r transition-colors duration-300 justify-between"
       style={{
         backgroundColor: theme.colors.backgroundSecondary || theme.colors.background,
         borderColor: theme.colors.border,
         color: theme.colors.text,
       }}
-      initial={{ x: -300, opacity: 0 }}
+      initial={{ x: -280, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      exit={{ x: -300, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      exit={{ x: -280, opacity: 0 }}
+      transition={{ type: 'spring', stiffness: 220, damping: 28 }}
     >
       <div>
         {/* App Logo */}
@@ -149,9 +162,10 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
           {menuItems.map((item, index) => (
             <motion.div
               key={item.id}
+              layout
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              transition={{ duration: 0.3, delay: index * 0.05, ease: 'easeOut' }}
             >
               <MenuItem item={item} />
             </motion.div>
@@ -195,9 +209,10 @@ const Sidebar = ({ activeView, setActiveView, onThemeClick }) => {
         {bottomItems.map((item, index) => (
           <motion.div
             key={item.id}
+            layout
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 + index * 0.05 }}
+            transition={{ duration: 0.3, delay: 0.4 + index * 0.05, ease: 'easeOut' }}
           >
             <MenuItem item={item} isBottom />
           </motion.div>

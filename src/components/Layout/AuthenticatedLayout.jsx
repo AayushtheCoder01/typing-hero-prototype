@@ -32,9 +32,9 @@ const AuthenticatedLayout = ({
         backgroundColor: theme.colors.background,
         color: theme.colors.text 
       }}
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       {/* Sidebar */}
       <Sidebar 
@@ -46,7 +46,7 @@ const AuthenticatedLayout = ({
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="p-8">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync" initial={false}>
             {showDetailedAnalytics ? (
               <DetailedTestAnalytics 
                 results={analyticsData} 
@@ -61,10 +61,10 @@ const AuthenticatedLayout = ({
             ) : (
               <motion.div
                 key={activeView}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.24, ease: 'easeOut' }}
               >
                 {children}
               </motion.div>

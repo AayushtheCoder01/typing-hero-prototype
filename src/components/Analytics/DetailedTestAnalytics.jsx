@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTheme } from '../../contexts/ThemeContext'
-import { usePerformance } from '../../contexts/PerformanceContext'
-import { 
+import {
   TrendingUp, 
   Target, 
   Clock, 
@@ -27,8 +25,6 @@ import {
 
 const DetailedTestAnalytics = ({ results, onBack }) => {
   const { theme } = useTheme()
-  const { getTestsByTimeframe, getStatsForTimeframe } = usePerformance()
-  const [comparisonTimeframe, setComparisonTimeframe] = useState('1week')
 
   if (!results) return null
 
@@ -60,30 +56,26 @@ const DetailedTestAnalytics = ({ results, onBack }) => {
 
   const performance = getPerformanceRating()
 
-  // Get comparison data
-  const comparisonStats = getStatsForTimeframe(comparisonTimeframe)
-  const comparisonTests = getTestsByTimeframe(comparisonTimeframe)
-
   // Advanced insights and recommendations
   const getDetailedInsights = () => {
     const insights = []
     
     // Speed analysis
-    if (results.wpm > comparisonStats.averageWPM) {
+    if (results.wpm >= 80) {
       insights.push({
         type: 'success',
         icon: <Zap size={20} />,
-        title: 'Speed Excellence',
-        message: `Your WPM (${results.wpm}) is ${results.wpm - comparisonStats.averageWPM} points above your ${comparisonTimeframe} average!`,
+        title: 'High Speed Achieved',
+        message: `Your WPM (${results.wpm}) demonstrates strong typing speed. Maintain consistent practice to push beyond ${Math.min(120, results.wpm + 10)} WPM.`,
         color: theme.colors.correct,
         category: 'speed'
       })
-    } else if (results.wpm < comparisonStats.averageWPM * 0.9) {
+    } else if (results.wpm < 50) {
       insights.push({
         type: 'warning',
         icon: <TrendingUp size={20} />,
-        title: 'Speed Below Average',
-        message: `Your WPM is ${comparisonStats.averageWPM - results.wpm} points below your recent average. Consider warming up before tests.`,
+        title: 'Speed Development Opportunity',
+        message: 'Consider drills focusing on high-frequency words to improve typing speed.',
         color: theme.colors.incorrect,
         category: 'speed'
       })
@@ -178,38 +170,6 @@ const DetailedTestAnalytics = ({ results, onBack }) => {
 
   const charAnalysis = getCharacterAnalysis()
 
-  // Performance comparison with historical data
-  const getPerformanceComparison = () => {
-    if (!comparisonTests || comparisonTests.length === 0) return null
-    
-    const recentTests = comparisonTests.slice(0, 5)
-    if (recentTests.length === 0) return null
-    
-    const avgWPM = recentTests.reduce((sum, test) => sum + (test.wpm || 0), 0) / recentTests.length
-    const avgAccuracy = recentTests.reduce((sum, test) => sum + (test.accuracy || 0), 0) / recentTests.length
-    
-    return {
-      wpmDiff: (results.wpm || 0) - avgWPM,
-      accuracyDiff: (results.accuracy || 0) - avgAccuracy,
-      avgWPM: Math.round(avgWPM),
-      avgAccuracy: Math.round(avgAccuracy),
-      testsCount: recentTests.length,
-      percentile: calculatePercentile(results.wpm || 0, comparisonTests.map(t => t.wpm || 0))
-    }
-  }
-
-  const calculatePercentile = (value, dataset) => {
-    if (!dataset || dataset.length === 0) return 50
-    const validData = dataset.filter(v => typeof v === 'number' && !isNaN(v))
-    if (validData.length === 0) return 50
-    
-    const sorted = [...validData].sort((a, b) => a - b)
-    const index = sorted.findIndex(v => v >= value)
-    return index === -1 ? 100 : Math.round((index / sorted.length) * 100)
-  }
-
-  const comparison = getPerformanceComparison()
-
   return (
     <motion.div
       className="max-w-7xl mx-auto p-6"
@@ -244,22 +204,6 @@ const DetailedTestAnalytics = ({ results, onBack }) => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <select
-            value={comparisonTimeframe}
-            onChange={(e) => setComparisonTimeframe(e.target.value)}
-            className="px-3 py-2 rounded-lg text-sm"
-            style={{ 
-              backgroundColor: theme.colors.surface,
-              color: theme.colors.text,
-              border: `1px solid ${theme.colors.border}`
-            }}
-          >
-            <option value="1day">Compare to 1 Day</option>
-            <option value="1week">Compare to 1 Week</option>
-            <option value="1month">Compare to 1 Month</option>
-            <option value="all">Compare to All Time</option>
-          </select>
-          
           <motion.button
             className="px-4 py-2 rounded-lg font-medium flex items-center space-x-2"
             style={{ 
@@ -449,90 +393,6 @@ const DetailedTestAnalytics = ({ results, onBack }) => {
               <span style={{ color: theme.colors.incorrect }}>Errors: {charAnalysis.errorRate}%</span>
             </div>
           </div>
-        </motion.div>
-
-        {/* Performance Comparison */}
-        <motion.div
-          className="p-6 rounded-xl"
-          style={{ backgroundColor: theme.colors.surface }}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <h3 className="text-xl font-bold mb-4" style={{ color: theme.colors.text }}>
-            Performance Comparison ({comparisonTimeframe})
-          </h3>
-          
-          {comparison ? (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Current WPM</span>
-                <span className="font-bold" style={{ color: theme.colors.primary }}>
-                  {results.wpm}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Average WPM</span>
-                <span className="font-bold" style={{ color: theme.colors.textMuted }}>
-                  {comparison.avgWPM}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>WPM Difference</span>
-                <span 
-                  className={`font-bold ${comparison.wpmDiff >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {comparison.wpmDiff >= 0 ? '+' : ''}{comparison.wpmDiff.toFixed(1)}
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Current Accuracy</span>
-                <span className="font-bold" style={{ color: theme.colors.correct }}>
-                  {results.accuracy}%
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Average Accuracy</span>
-                <span className="font-bold" style={{ color: theme.colors.textMuted }}>
-                  {comparison.avgAccuracy}%
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Accuracy Difference</span>
-                <span 
-                  className={`font-bold ${comparison.accuracyDiff >= 0 ? 'text-green-500' : 'text-red-500'}`}
-                >
-                  {comparison.accuracyDiff >= 0 ? '+' : ''}{comparison.accuracyDiff.toFixed(1)}%
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Performance Percentile</span>
-                <span className="font-bold" style={{ color: theme.colors.accent }}>
-                  {comparison.percentile}th
-                </span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span style={{ color: theme.colors.textSecondary }}>Tests Compared</span>
-                <span className="font-bold" style={{ color: theme.colors.text }}>
-                  {comparison.testsCount}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <BarChart3 size={48} style={{ color: theme.colors.textMuted }} className="mx-auto mb-3" />
-              <p style={{ color: theme.colors.textMuted }}>
-                No comparison data available for {comparisonTimeframe}
-              </p>
-            </div>
-          )}
         </motion.div>
       </div>
 

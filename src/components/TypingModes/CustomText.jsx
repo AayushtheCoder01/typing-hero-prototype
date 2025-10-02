@@ -170,11 +170,12 @@ const CustomText = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
     if (hasMinimumProgress) {
       updatePerformance(finalResults)
     }
-    
-    // Show analytics after a brief delay
-    setTimeout(() => {
+
+    if (onShowDetailedAnalytics) {
+      onShowDetailedAnalytics(finalResults)
+    } else if (onShowAnalytics) {
       onShowAnalytics(finalResults)
-    }, 1500)
+    }
   }
 
   // Reset test

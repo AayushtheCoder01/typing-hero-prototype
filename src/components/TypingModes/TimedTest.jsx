@@ -76,7 +76,6 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
   const [correctChars, setCorrectChars] = useState(0)
   const [incorrectChars, setIncorrectChars] = useState(0)
   const [testResults, setTestResults] = useState(null)
-  const [showQuickResults, setShowQuickResults] = useState(false)
   
   const inputRef = useRef(null)
   const intervalRef = useRef(null)
@@ -243,7 +242,6 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
     setCorrectChars(0)
     setIncorrectChars(0)
     setTestResults(null)
-    setShowQuickResults(false)
     setText(generateTestText())
     setTimeout(() => {
       inputRef.current?.focus()
@@ -296,20 +294,7 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
       if (e.key === 'Tab') {
         e.preventDefault()
         
-        // If test is complete or results are showing, reset the test
-        if (isComplete || showQuickResults) {
-          setShowQuickResults(false)
-          resetTest()
-          return
-        }
-        
-        // If test is active or paused, reset the test
-        if (isActive || isPaused) {
-          resetTest()
-          return
-        }
-        
-        // If test hasn't started, reset anyway to regenerate text
+        // Reset test regardless of current state
         resetTest()
         return
       }
@@ -322,7 +307,7 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [showSettings, isComplete, showQuickResults, isActive, isPaused, resetTest])
+  }, [showSettings, isComplete, isActive, isPaused, resetTest])
 
   // Ensure we have text on component mount
   useEffect(() => {
@@ -451,14 +436,17 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
     }
     
     setTestResults(finalResults)
-    
+
     // Only save to dashboard if test has meaningful progress
     if (hasMinimumProgress) {
       updatePerformance(finalResults)
     }
-    
-    // Show quick results immediately
-    setShowQuickResults(true)
+
+    if (onShowDetailedAnalytics) {
+      onShowDetailedAnalytics(finalResults)
+    } else if (onShowAnalytics) {
+      onShowAnalytics(finalResults)
+    }
   }
 
 
@@ -473,27 +461,26 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
   const renderCharacter = (char, index) => {
     let className = 'relative inline-block transition-all duration-150'
     let bgColor = 'transparent'
-    
+    let color = theme.colors.textMuted
+
     if (index < userInput.length) {
       if (userInput[index] === char) {
-        className += ' text-correct'
         bgColor = theme.colors.correct + '20'
+        color = theme.colors.correct
       } else {
-        className += ' text-incorrect bg-incorrect/20'
         bgColor = theme.colors.incorrect + '20'
+        color = theme.colors.incorrect
       }
     } else if (index === currentIndex) {
-      className += ' text-current'
       bgColor = theme.colors.current + '20'
-    } else {
-      className += ' text-muted'
+      color = theme.colors.current
     }
 
     return (
       <motion.span
         key={index}
         className={className}
-        style={{ backgroundColor: bgColor }}
+        style={{ backgroundColor: bgColor, color }}
         initial={{ opacity: 0.7 }}
         animate={{ 
           opacity: index <= currentIndex ? 1 : 0.7,
@@ -504,7 +491,7 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
         {char === ' ' ? '\u00A0' : char}
         {index === currentIndex && (
           <motion.div
-            className="absolute top-0 left-0 w-0.5 h-full bg-caret"
+            className="absolute top-0 left-0 w-0.5 h-full"
             animate={{ opacity: isPaused ? 0.3 : [1, 0, 1] }}
             transition={{ duration: isPaused ? 0 : 1, repeat: isPaused ? 0 : Infinity }}
             style={{ backgroundColor: theme.colors.caret }}
@@ -833,122 +820,7 @@ const TimedTest = ({ onShowAnalytics, onShowDetailedAnalytics }) => {
         </p>
       </motion.div>
 
-      {/* Quick Results Modal */}
-      {showQuickResults && testResults && (
-        <motion.div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => setShowQuickResults(false)}
-        >
-          <motion.div
-            className="max-w-md w-full rounded-2xl p-6"
-            style={{ backgroundColor: theme.colors.surface }}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold mb-2" style={{ color: theme.colors.text }}>
-                Test Complete!
-              </h3>
-              <p style={{ color: theme.colors.textSecondary }}>
-                Here's how you performed
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="text-center p-4 rounded-lg" style={{ backgroundColor: theme.colors.background }}>
-                <div className="text-3xl font-bold mb-1" style={{ color: theme.colors.primary }}>
-                  {testResults.wpm}
-                </div>
-                <div className="text-sm" style={{ color: theme.colors.textMuted }}>WPM</div>
-              </div>
-              <div className="text-center p-4 rounded-lg" style={{ backgroundColor: theme.colors.background }}>
-                <div className="text-3xl font-bold mb-1" style={{ color: theme.colors.correct }}>
-                  {testResults.accuracy}%
-                </div>
-                <div className="text-sm" style={{ color: theme.colors.textMuted }}>Accuracy</div>
-              </div>
-            </div>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span style={{ color: theme.colors.textSecondary }}>Time</span>
-                <span style={{ color: theme.colors.text }}>{testResults.timeElapsed?.toFixed(1)}s</span>
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: theme.colors.textSecondary }}>Errors</span>
-                <span style={{ color: theme.colors.incorrect }}>{testResults.errors}</span>
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: theme.colors.textSecondary }}>Characters</span>
-                <span style={{ color: theme.colors.text }}>{testResults.totalCharacters}</span>
-              </div>
-            </div>
-
-            <div className="flex space-x-3">
-              <motion.button
-                onClick={() => {
-                  setShowQuickResults(false)
-                  onShowAnalytics(testResults)
-                }}
-                className="flex-1 py-3 px-4 rounded-lg font-medium"
-                style={{ 
-                  backgroundColor: theme.colors.primary,
-                  color: theme.colors.background 
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                View Analytics
-              </motion.button>
-              
-              {onShowDetailedAnalytics && (
-                <motion.button
-                  onClick={() => {
-                    setShowQuickResults(false)
-                    onShowDetailedAnalytics(testResults)
-                  }}
-                  className="flex-1 py-3 px-4 rounded-lg font-medium"
-                  style={{ 
-                    backgroundColor: theme.colors.secondary + '20',
-                    color: theme.colors.secondary 
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Detailed View
-                </motion.button>
-              )}
-              
-              <motion.button
-                onClick={() => {
-                  setShowQuickResults(false)
-                  resetTest()
-                }}
-                className="px-4 py-3 rounded-lg font-medium"
-                style={{ 
-                  backgroundColor: theme.colors.accent + '20',
-                  color: theme.colors.accent 
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Try Again
-              </motion.button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
-      <style jsx>{`
-        .text-correct { color: ${theme.colors.correct}; }
-        .text-incorrect { color: ${theme.colors.incorrect}; }
-        .text-current { color: ${theme.colors.current}; }
-        .text-muted { color: ${theme.colors.textMuted}; }
-        .bg-caret { background-color: ${theme.colors.caret}; }
-      `}</style>
+      
     </div>
   )
 }
